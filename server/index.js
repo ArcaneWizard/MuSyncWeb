@@ -2,7 +2,6 @@ const express = require("express");
 const app = express();
 
 require("dotenv").config();
-console.log(process.env.DB_USER);
 
 const cors = require("cors");
 const pool = require("./db");
@@ -12,6 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 //ROUTES
+app.use("/auth", require("./routes/jwtAuth"));
 
 //create a todo
 app.post("/todos", async (req, res) => {
