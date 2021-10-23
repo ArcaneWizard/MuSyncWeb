@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React from "react";
 import {
   BrowserRouter as Router,
   Switch,
@@ -9,20 +9,18 @@ import "./App.css";
 
 //components
 import HomePage from "./general_components/HomePage";
+import AudioPage from "./general_components/AudioPage";
 
 function App() {
   return (
     <Router>
-      <div className="container-fluid min-vh-100 bg-success">
+      <div className="container-fluid min-vh-100 bg-info">
         <Switch>
           <Route exact path="/">
             <HomePage />
           </Route>
-          <Route path="/another">
-            <AnotherPage />
-          </Route>
-          <Route path="/bored">
-            <BoredPage />
+          <Route path="/:id">
+            <AudioPage />
           </Route>
         </Switch>
       </div>

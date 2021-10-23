@@ -1,19 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { useHistory } from "react-router";
-import GameImagePreview from "../medium_components/GameImagePreview";
+import axios from "axios";
 
 const HomePage = () => {
-  var bob = [2, 3, 4];
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
   const history = useHistory();
-
-  const ChangeToAnotherPage = () => {
-    const location = {
-      pathname: "/another",
-      state: { Lucario: "awesome" },
-    };
-
-    history.push(location);
-  };
 
   let generateLobbyCode = () => {
     let code = "";
@@ -25,15 +17,52 @@ const HomePage = () => {
     return code;
   };
 
-  let goToAudioPage = () => {
+  let enterLobbyCode = (e) => {
+    const newCode = e.target.value.toUpperCase();
+    setCode(newCode);
+
+    if (newCode.length == 5) {
+      axios
+        .post(`/${newCode}/user`, {
+          name: name,
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+        .then(() => {
+          const location = {
+            pathname: `/${newCode}`,
+            state: {
+              name: name,
+            },
+          };
+
+          history.push(location);
+        });
+    }
+  };
+
+  let goToAudioPage = (e) => {
+    e.preventDefault();
+
     const code = generateLobbyCode();
-
-    const location = {
-      pathname: `/${code}`,
-      state: code,
-    };
-
-    history.push(location);
+    console.log("bruh");
+    axios
+      .post(`/${code}/user`, {
+        name: name,
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .then(() => {
+        const location = {
+          pathname: `/${code}`,
+          state: {
+            name: name,
+          },
+        };
+        history.push(location);
+      });
   };
 
   return (
@@ -45,33 +74,33 @@ const HomePage = () => {
           <form>
             <div class="form-group w-50 text-center m-auto float-none">
               <input
-                type="email"
+                type="text"
                 class="form-control"
-                id="exampleInputEmail1"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                id="example"
                 aria-describedby="emailHelp"
                 placeholder="Enter name"
               />
             </div>
             <div className="pt-3 text-center">
               <button
-                type="submit"
                 class="btn btn-primary w-50"
-                onClick={() => goToAudioPage()}
+                onClick={(e) => goToAudioPage(e)}
               >
                 Create Lobby
               </button>
             </div>
             <div class="form-group pt-3 center">
               <input
-                type="password"
-                class="form-control bg-info text-center text-black w-50 m-auto float-none"
+                type="text"
+                value={code}
+                onChange={(e) => enterLobbyCode(e)}
+                class="form-control bg-warning text-center text-black w-50 m-auto float-none"
                 id="exampleInputPassword1"
                 placeholder="Enter Lobby Code"
               />
             </div>
-            <h2 class="text-white text-center pt-5 fst-italic">
-              Generated Code:
-            </h2>
           </form>
         </div>
         <div class="col-sm">Creator, Testing Duration and Testing Wanted</div>

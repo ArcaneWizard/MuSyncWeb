@@ -1,52 +1,52 @@
 const express = require("express");
 const app = express();
-
 require("dotenv").config();
 
-const cors = require("cors");
-const pool = require("./db");
+const axios = require("axios").default;
+axios.defaults.baseURL = "localhost:5000/";
 
+//Connect to monk database
 const mongoURI = `localhost/database`;
 let db = require("monk")(process.env.MONGOATLAS_URL || mongoURI);
 console.log("Connected to " + db._connectionURI);
 
-//middleware
+//Middleware
+const cors = require("cors");
 app.use(cors());
 app.use(express.json());
+
+const bodyParser = require("body-parser");
+app.use(bodyParser.json()); //support json encoded bodies
+app.use(bodyParser.urlencoded({ extended: true })); //support encoded bodies
 
 //ROUTES
 app.use("/auth", require("./routes/jwtAuth"));
 
-//send entry in test collection
-const joe = "ASYNC";
-const room = db.get(joe);
-room
-  .insert([{ name: "Rusheel", age: 18, email: "rusheel@pigeon.com" }])
-  .then((docs) => {})
-  .catch((err) => console.log(err));
-
-//create a todo
-app.post("/todos", async (req, res) => {
-  try {
-    const { description } = req.body;
-    const newTodo = await pool.query(
-      "INSERT INTO todo (description) VALUES($1) RETURNING *",
-      [description]
-    );
-    res.json(newTodo.rows[0]);
-  } catch (err) {
-    console.error(err.message);
-  }
+//create a lobby
+app.post("/:lobby", (req, res) => {
+  const lobby = req.params.lobby;
+  db.get(lobby).then(res.json(`${lobby} created`));
 });
 
-//get all todos
-app.get("/todos", async (req, res) => {
-  try {
-    const allTodos = await pool.query("SELECT * FROM todo ORDER BY id");
-    res.json(allTodos.rows);
-  } catch (err) {
-    console.error(err.message);
-  }
+//post user to lobby
+app.post("/:lobby/user", (req, res) => {
+  const name = req.body.name;
+  const room = db.get(req.params.lobby);
+
+  room
+    .insert({ name: name, duration: 0, mp3: "" })
+    .then((doc) => res.json(doc))
+    .then(() => console.log(`${name} successfuly joined ${req.params.lobby}`))
+    .catch((err) => console.log(err.message));
+});
+
+//get all users
+app.get("/:lobby/users", (req, res) => {
+  const room = db.get(req.params.lobby);
+  room
+    .find({})
+    .then((users) => res.json(users))
+    .catch((err) => console.log(err.message));
 });
 
 //get a todo
