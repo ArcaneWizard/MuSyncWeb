@@ -13,21 +13,19 @@ import HomePage from "./general_components/HomePage";
 function App() {
   return (
     <Router>
-      <Fragment>
-        <div className="container">
-          <Switch>
-            <Route exact path="/">
-              <HomePage />
-            </Route>
-            <Route path="/another">
-              <AnotherPage />
-            </Route>
-            <Route path="/bored">
-              <BoredPage />
-            </Route>
-          </Switch>
-        </div>
-      </Fragment>
+      <div className="container-fluid min-vh-100 bg-success">
+        <Switch>
+          <Route exact path="/">
+            <HomePage />
+          </Route>
+          <Route path="/another">
+            <AnotherPage />
+          </Route>
+          <Route path="/bored">
+            <BoredPage />
+          </Route>
+        </Switch>
+      </div>
     </Router>
   );
 }

@@ -6,12 +6,24 @@ require("dotenv").config();
 const cors = require("cors");
 const pool = require("./db");
 
+const mongoURI = `localhost/database`;
+let db = require("monk")(process.env.MONGOATLAS_URL || mongoURI);
+console.log("Connected to " + db._connectionURI);
+
 //middleware
 app.use(cors());
 app.use(express.json());
 
 //ROUTES
 app.use("/auth", require("./routes/jwtAuth"));
+
+//send entry in test collection
+const joe = "ASYNC";
+const room = db.get(joe);
+room
+  .insert([{ name: "Rusheel", age: 18, email: "rusheel@pigeon.com" }])
+  .then((docs) => {})
+  .catch((err) => console.log(err));
 
 //create a todo
 app.post("/todos", async (req, res) => {
