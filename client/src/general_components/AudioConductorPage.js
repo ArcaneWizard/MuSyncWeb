@@ -50,8 +50,10 @@ const AudioConductorPage = () => {
         >
           Stop Recording
         </button>
+        <div class="mt-5 container">
+          <AudioRecorder />
+        </div>
         <YoutubeFrame />
-        <AudioRecorder />
 
         <div className="fixed-bottom mb-5">
           <ListPlayers />
