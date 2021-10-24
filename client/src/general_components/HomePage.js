@@ -28,7 +28,6 @@ const HomePage = () => {
           name: name,
         })
         .then((res) => res.json)
-        .then((json) => console.log(json))
         .catch((err) => {
           console.log(err);
         })
@@ -107,7 +106,7 @@ const HomePage = () => {
             </div>
           </form>
         </div>
-        <div class="col-sm">Creator, Testing Duration and Testing Wanted</div>
+        <div class="col-sm"></div>
       </div>
     </div>
   );

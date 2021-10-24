@@ -15,24 +15,22 @@ const ListPlayers = () => {
         .get(`/${lobby}/users`)
         .then((res) => {
           updatePlayers(res.data);
-          console.log(res.data);
-          console.log(players.length);
         })
         .catch(function (error) {
           console.log(error);
         });
-    }, 700);
+    }, 2000);
 
     return () => clearInterval(interval);
   });
 
   return (
     <div class="">
-      <ul class="container float-none m-auto d-flex">
+      <ul class=" container-fluid float-none m-auto d-flex">
         {players.map((player, index) => (
           <p
-            className="fw-bold font-monospace bg-transparent text-black w-75
-            float-none m-auto"
+            className="fw-bold font-monospace bg-transparent 
+            text-black w-100 float-none m-auto"
             key={index}
           >
             {player.name}

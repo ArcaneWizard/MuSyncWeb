@@ -1,5 +1,6 @@
 import React from "react";
 import { useLocation, useParams } from "react-router";
+import AudioRecorder from "../medium_components/AudioRecorder";
 import ListPlayers from "../medium_components/ListPlayers";
 
 const AudioPlayerPage = () => {
@@ -16,6 +17,7 @@ const AudioPlayerPage = () => {
       <div className="fixed-bottom mb-5">
         <ListPlayers />
       </div>
+      <AudioRecorder />
     </div>
   );
 };

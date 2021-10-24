@@ -11,6 +11,7 @@ console.log("Connected to " + db._connectionURI);
 const cors = require("cors");
 app.use(cors());
 app.use(express.json());
+db.addMiddleware(require("monk-middleware-wrap-non-dollar-update"));
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.json()); //support json encoded bodies
@@ -46,37 +47,61 @@ app.get("/:lobby/users", (req, res) => {
     .catch((err) => console.log(err.message));
 });
 
-//get a todo
-app.get("/todos/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const todo = await pool.query("SELECT * FROM todo WHERE id = $1", [id]);
-    res.json(todo.rows[0]);
-  } catch (err) {
-    console.error(err.message);
-  }
+//conductor has begun recording
+app.put("/:lobby/beginRecording", (req, res) => {
+  const room = db.get(req.params.lobby);
+  room
+    .findOneAndUpdate(
+      { name: req.body.name },
+      { $set: { recordingState: "in progress" } },
+      {}
+    )
+    .then((doc) => res.json(doc))
+    .catch((err) => console.log("hi" + err.message));
 });
 
-//update a todo
-app.put("/todos/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { description } = req.body;
-    const updateTodo = await pool.query(
-      "UPDATE todo SET description = $1 WHERE id = $2",
-      [description, id]
-    );
-    res.json("yeet");
-  } catch (err) {
-    console.error(err.message);
-  }
+//get recording state (in progress or ended)
+app.get("/:lobby/getRecordingState", (req, res) => {
+  const room = db.get(req.params.lobby);
+  room
+    .find({})
+    .then((users) => res.json(users[0].recordingState))
+    .catch((err) => console.log(err.message));
 });
 
-//delete a todo
-app.delete("/todos/:id", async (req, res) => {
-  const { id } = req.params;
-  const deletedTodo = await pool.query("DELETE FROM todo WHERE id = $1", [id]);
-  res.json("todo " + id + " was deleted.");
+//conductor has ended recording
+app.put("/:lobby/endRecording", (req, res) => {
+  const room = db.get(req.params.lobby);
+  room
+    .findOneAndUpdate(
+      { name: req.body.name },
+      { $set: { recordingState: "ended" } },
+      {}
+    )
+    .then((doc) => res.json(doc))
+    .catch((err) => console.log("hi" + err.message));
+});
+
+//update users wave file
+app.put("/:lobby/user/audio", (req, res) => {
+  const room = db.get(req.params.lobby);
+  room
+    .findOneAndUpdate(
+      { name: req.body.name },
+      { $set: { mp3: req.body.audioFile } },
+      {}
+    )
+    .then((doc) => res.json(doc))
+    .catch((err) => console.log("hi" + err.message));
+});
+
+//get users wave file
+app.get("/:lobby/:user/getAudio", (req, res) => {
+  const room = db.get(req.params.lobby);
+  room
+    .findOne({ name: `${req.params.user}` })
+    .then((doc) => res.json(doc))
+    .catch((err) => console.log(err.message));
 });
 
 app.listen(5000, () => {

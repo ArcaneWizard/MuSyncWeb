@@ -1,12 +1,32 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useLocation, useParams } from "react-router";
 import ListPlayers from "../medium_components/ListPlayers";
+import AudioRecorder from "../medium_components/AudioRecorder";
+import axiosConfig from "../configs/axiosconfigs";
 
 const AudioConductorPage = () => {
   const { id } = useParams();
-  const location = useLocation();
+  const { lobby, name } = useLocation().state;
 
-  console.log(location.state);
+  useEffect(() => {
+    stopAllRecordings();
+  });
+
+  const startAllRecordings = () => {
+    axiosConfig
+      .put(`${lobby}/beginRecording`, {
+        name: `${name}`,
+      })
+      .catch((err) => console.log(err.message));
+  };
+
+  const stopAllRecordings = () => {
+    axiosConfig
+      .put(`${lobby}/endRecording`, {
+        name: `${name}`,
+      })
+      .catch((err) => console.log(err.message));
+  };
 
   return (
     <div className="text-center">
@@ -15,6 +35,7 @@ const AudioConductorPage = () => {
         <button
           type="button"
           class="btn btn-primary m-auto float-none"
+          onClick={() => startAllRecordings()}
           style={{ width: 200 }}
         >
           Start Recording
@@ -22,10 +43,12 @@ const AudioConductorPage = () => {
         <button
           type="button"
           class="btn btn-secondary m-auto float-none"
+          onClick={() => stopAllRecordings()}
           style={{ width: 200 }}
         >
-          Start Playing
+          Stop Recording
         </button>
+        <AudioRecorder />
         <div className="fixed-bottom mb-5">
           <ListPlayers />
         </div>
