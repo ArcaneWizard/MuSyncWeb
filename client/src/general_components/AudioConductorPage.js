@@ -4,6 +4,7 @@ import ListPlayers from "../medium_components/ListPlayers";
 import AudioRecorder from "../medium_components/AudioRecorder";
 import YoutubeFrame from "../small_components/InsertVidElement";
 import axiosConfig from "../configs/axiosconfigs";
+import processing from "../configs/pureLogic";
 
 const AudioConductorPage = () => {
   const { id } = useParams();
@@ -26,6 +27,16 @@ const AudioConductorPage = () => {
       .put(`${lobby}/endRecording`, {
         name: `${name}`,
       })
+      .then(
+        setTimeout(() => {
+          console.log("it is working");
+          axiosConfig
+            .get(`${lobby}/userInfo`)
+            .then((res) => res.data)
+            .then((res) => console.log(processing(res)));
+        }),
+        2000
+      )
       .catch((err) => console.log(err.message));
   };
 
