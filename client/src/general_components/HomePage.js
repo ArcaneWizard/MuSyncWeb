@@ -2,11 +2,17 @@ import React, { useState } from "react";
 import { useHistory } from "react-router";
 import axios from "axios";
 import axiosConfig from "../configs/axiosconfigs";
+import processing from "../logic/pureLogic";
 
 const HomePage = () => {
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const history = useHistory();
+
+  let mergeAudio = e => {
+    e.preventDefault();
+    axiosConfig.get(`/QAIFO/userInfo`).then(res => res.data).then(res => console.log(processing(res)));
+  }
 
   let generateLobbyCode = () => {
     let code = "";
@@ -47,6 +53,7 @@ const HomePage = () => {
 
   let createLobby = (e) => {
     e.preventDefault();
+    console.log("je;;p");
     const code = generateLobbyCode();
 
     axiosConfig
@@ -92,6 +99,15 @@ const HomePage = () => {
                 onClick={(e) => createLobby(e)}
               >
                 Create Lobby
+              </button>
+            </div>
+            
+            <div className="pt-3 text-center">
+              <button
+                class="btn btn-secondary w-50"
+                onClick={(e) => mergeAudio(e)}
+              >
+                Merge Audio
               </button>
             </div>
             <div class="form-group pt-3 center">

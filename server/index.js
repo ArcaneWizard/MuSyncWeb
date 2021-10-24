@@ -5,7 +5,7 @@ require("dotenv").config();
 //Connect to monk database
 const mongoURI = `localhost/database`;
 let db = require("monk")(process.env.MONGOATLAS_URL || mongoURI);
-console.log("Connected to " + db._connectionURI);
+console.log("Connected to " + db._connectionURI); 
 
 //Middleware
 const cors = require("cors");
@@ -28,6 +28,7 @@ app.post("/:lobby", (req, res) => {
 
 //post user to lobby
 app.post("/:lobby/user", (req, res) => {
+  console.log("ha");
   const name = req.body.name;
   const room = db.get(req.params.lobby);
 
@@ -101,6 +102,15 @@ app.get("/:lobby/:user/getAudio", (req, res) => {
   room
     .findOne({ name: `${req.params.user}` })
     .then((doc) => res.json(doc))
+    .catch((err) => console.log(err.message));
+});
+
+//get all user info, including files
+app.get("/:lobby/userInfo", (req, res) => {
+  const room = db.get(req.params.lobby);
+  room
+    .find({})
+    .then((users) => res.json(users))
     .catch((err) => console.log(err.message));
 });
 
