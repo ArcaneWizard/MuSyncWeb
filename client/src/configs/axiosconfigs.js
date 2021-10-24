@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: process.env.RELATIVE_URL || "http://localhost:5000/",
+  baseURL: "https://mu-sync.herokuapp.com/",
 });
 
 export default instance;
