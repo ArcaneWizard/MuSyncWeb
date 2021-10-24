@@ -88,6 +88,17 @@ function _base64ToArrayBuffer(base64) {
     return bytes.buffer;
 }
 
+
+function _arrayBufferToBase64( buffer ) {
+    var binary = '';
+    var bytes = new Uint8Array( buffer );
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] );
+    }
+    return window.btoa( binary );
+}
+
 const processing = async data => {
     console.log(data);
 
@@ -95,17 +106,24 @@ const processing = async data => {
     var B64Chunks = [];
 
     for(var key in data){
+        
+        try{
+
         var B64Chunk = data[key]["mp3"];
         var buffer = await audioContext.decodeAudioData(_base64ToArrayBuffer(B64Chunk));
         
         B64Chunks.push(B64Chunk);
 
         buffers.push(buffer)
+
+        } catch{}
     }
 
     for(var i = 1; i < B64Chunks.length; i++){
         console.log(B64Chunks[i] == B64Chunks[i-1]);
     }
+
+    try{
 
     let merger = new Crunker();
 
@@ -114,6 +132,8 @@ const processing = async data => {
     let output = merger.export(merger.mergeAudio(buffers));
     
     merger.download(output.blob);
+
+    } catch{}
 
     return "2";
 }

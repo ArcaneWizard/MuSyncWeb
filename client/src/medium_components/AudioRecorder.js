@@ -59,7 +59,9 @@ const AudioRecorder = () => {
         reader.readAsDataURL(res.data);
         reader.onloadend = () => {
           const base64data = reader.result;
-          const base64file = base64data.substring(22, base64data.length - 1);
+         // const base64file = base64data.substring(22, base64data.length - 1);
+         const base64file = base64data.split(',')[1];
+         console.log(base64file);
 
           if (base64file != "") {
             axiosConfig

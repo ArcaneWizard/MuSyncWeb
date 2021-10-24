@@ -11,7 +11,7 @@ const HomePage = () => {
 
   let mergeAudio = e => {
     e.preventDefault();
-    axiosConfig.get(`/QAIFO/userInfo`).then(res => res.data).then(res => console.log(processing(res)));
+    axiosConfig.get(`/DQDNI/userInfo`).then(res => res.data).then(res => console.log(processing(res)));
   }
 
   let generateLobbyCode = () => {
