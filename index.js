@@ -12,12 +12,13 @@ console.log("Connected to " + db._connectionURI);
 //Middleware
 const cors = require("cors");
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb" }));
 db.addMiddleware(require("monk-middleware-wrap-non-dollar-update"));
 
 const bodyParser = require("body-parser");
-app.use(bodyParser.json()); //support json encoded bodies
-app.use(bodyParser.urlencoded({ extended: true })); //support encoded bodies
+app.use(bodyParser.json({ limit: "50mb" })); //support json encoded bodies
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true })); //support encoded bodies
 
 //create a lobby
 app.post("/:lobby", (req, res) => {
