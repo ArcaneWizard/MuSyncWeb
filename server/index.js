@@ -2,9 +2,6 @@ const express = require("express");
 const app = express();
 require("dotenv").config();
 
-const axios = require("axios").default;
-axios.defaults.baseURL = "localhost:5000/";
-
 //Connect to monk database
 const mongoURI = `localhost/database`;
 let db = require("monk")(process.env.MONGOATLAS_URL || mongoURI);

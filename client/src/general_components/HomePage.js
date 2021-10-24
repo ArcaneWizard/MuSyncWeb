@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useHistory } from "react-router";
 import axios from "axios";
+import axiosConfig from "../configs/axiosconfigs";
 
 const HomePage = () => {
   const [code, setCode] = useState("");
@@ -22,18 +23,21 @@ const HomePage = () => {
     setCode(newCode);
 
     if (newCode.length == 5) {
-      axios
+      axiosConfig
         .post(`/${newCode}/user`, {
           name: name,
         })
+        .then((res) => res.json)
+        .then((json) => console.log(json))
         .catch((err) => {
           console.log(err);
         })
         .then(() => {
           const location = {
-            pathname: `/${newCode}`,
+            pathname: `${newCode}/player`,
             state: {
               name: name,
+              lobby: newCode,
             },
           };
 
@@ -42,12 +46,11 @@ const HomePage = () => {
     }
   };
 
-  let goToAudioPage = (e) => {
+  let createLobby = (e) => {
     e.preventDefault();
-
     const code = generateLobbyCode();
-    console.log("bruh");
-    axios
+
+    axiosConfig
       .post(`/${code}/user`, {
         name: name,
       })
@@ -56,9 +59,10 @@ const HomePage = () => {
       })
       .then(() => {
         const location = {
-          pathname: `/${code}`,
+          pathname: `${code}/conductor`,
           state: {
             name: name,
+            lobby: code,
           },
         };
         history.push(location);
@@ -86,7 +90,7 @@ const HomePage = () => {
             <div className="pt-3 text-center">
               <button
                 class="btn btn-primary w-50"
-                onClick={(e) => goToAudioPage(e)}
+                onClick={(e) => createLobby(e)}
               >
                 Create Lobby
               </button>

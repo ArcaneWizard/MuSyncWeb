@@ -9,7 +9,8 @@ import "./App.css";
 
 //components
 import HomePage from "./general_components/HomePage";
-import AudioPage from "./general_components/AudioPage";
+import AudioConductorPage from "./general_components/AudioConductorPage";
+import AudioPlayerPage from "./general_components/AudioPlayerPage";
 
 function App() {
   return (
@@ -19,8 +20,11 @@ function App() {
           <Route exact path="/">
             <HomePage />
           </Route>
-          <Route path="/:id">
-            <AudioPage />
+          <Route exact path="/:id/conductor">
+            <AudioConductorPage />
+          </Route>
+          <Route exact path="/:id/player">
+            <AudioPlayerPage />
           </Route>
         </Switch>
       </div>
