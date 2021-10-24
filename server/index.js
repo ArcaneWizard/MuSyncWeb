@@ -1,5 +1,7 @@
 const express = require("express");
 const app = express();
+const path = require("path");
+const port = process.env.PORT || 5000;
 require("dotenv").config();
 
 //Connect to monk database
@@ -16,9 +18,6 @@ db.addMiddleware(require("monk-middleware-wrap-non-dollar-update"));
 const bodyParser = require("body-parser");
 app.use(bodyParser.json()); //support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); //support encoded bodies
-
-//ROUTES
-app.use("/auth", require("./routes/jwtAuth"));
 
 //create a lobby
 app.post("/:lobby", (req, res) => {
@@ -135,6 +134,17 @@ app.get("/:lobby/userInfo", (req, res) => {
     .catch((err) => console.log(err.message));
 });
 
-app.listen(5000, () => {
-  console.log("server has started on port 5000");
+app.listen(port, () => {
+  console.log(`server has started on port ${port}`);
 });
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "build")));
+}
+
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(path.join(__dirname, "build/index.html")));
+});
+
+//ping app every 20 min to keep the server from sleeping
+require("heroku-self-ping").default("https://mu-sync.herokuapp.com/");
