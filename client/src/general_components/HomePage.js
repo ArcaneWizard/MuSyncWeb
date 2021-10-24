@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useHistory } from "react-router";
-import axios from "axios";
 import axiosConfig from "../configs/axiosconfigs";
+import whiteLogo from "../images/white_logo_3.png";
+import blackFooter from "../images/dark.png";
 
 const HomePage = () => {
   const [code, setCode] = useState("");
@@ -68,12 +69,23 @@ const HomePage = () => {
       });
   };
 
+  const sectionStyle = {
+    backgroundImage: `url(${blackFooter})`,
+    width: 440,
+    marginBottom: 20,
+  };
+
   return (
     <div>
-      <div class="row min-vh-100 pb-5">
+      <div class="row min-vh-100">
         <div class="col-sm"></div>
-        <div class="col-sm my-auto">
-          <h1 class="text-white text-center pb-3 fst-italic">MuSync</h1>
+        <div class="col-sm my-auto float-none text-center">
+          <img
+            src={whiteLogo}
+            alt="..."
+            class="img m-auto float-none mb-3"
+            width="150"
+          />
           <form>
             <div class="form-group w-50 text-center m-auto float-none">
               <input

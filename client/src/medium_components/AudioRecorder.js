@@ -77,18 +77,7 @@ const AudioRecorder = () => {
 
   return (
     <div>
-      <p>{status}</p>
-      <button className="btn btn-primary" onClick={() => beginRecording()}>
-        Start Recording
-      </button>
-      <button className="btn btn-primary" onClick={() => endRecording()}>
-        Stop Recording
-      </button>
-
-      <button className="btn btn-warning" onClick={() => audio.current.pause()}>
-        Test function
-      </button>
-      <audio ref={audio} src={mediaBlobUrl} controls autoPlay loop />
+      <audio ref={audio} src={mediaBlobUrl} controls />
     </div>
   );
 };

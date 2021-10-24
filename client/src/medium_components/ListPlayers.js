@@ -26,11 +26,12 @@ const ListPlayers = () => {
 
   return (
     <div class="">
+      <h3 class=" text-white mb-4">Participants</h3>
       <ul class=" container-fluid float-none m-auto d-flex">
         {players.map((player, index) => (
           <p
             className="fw-bold font-monospace bg-transparent 
-            text-black w-100 float-none m-auto"
+            text-white w-100 float-none m-auto"
             key={index}
           >
             {player.name}

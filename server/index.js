@@ -104,6 +104,37 @@ app.get("/:lobby/:user/getAudio", (req, res) => {
     .catch((err) => console.log(err.message));
 });
 
+//share embedded link with users
+app.put("/:lobby/embeddedLink", (req, res) => {
+  const room = db.get(req.params.lobby);
+  room
+    .findOneAndUpdate(
+      { name: req.body.name },
+      { $set: { embeddedLink: req.body.embeddedLink } },
+      {}
+    )
+    .then((doc) => res.json(doc))
+    .catch((err) => console.log("hi" + err.message));
+});
+
+//get embedded link
+app.get("/:lobby/embeddedLink", (req, res) => {
+  const room = db.get(req.params.lobby);
+  room
+    .find({})
+    .then((users) => res.json(users[0].embeddedLink))
+    .catch((err) => console.log(err.message));
+});
+
+//get all user info, including files
+app.get("/:lobby/userInfo", (req, res) => {
+  const room = db.get(req.params.lobby);
+  room
+    .find({})
+    .then((users) => res.json(users))
+    .catch((err) => console.log(err.message));
+});
+
 app.listen(5000, () => {
   console.log("server has started on port 5000");
 });

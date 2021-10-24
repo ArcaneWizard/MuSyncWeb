@@ -12,10 +12,16 @@ import HomePage from "./general_components/HomePage";
 import AudioConductorPage from "./general_components/AudioConductorPage";
 import AudioPlayerPage from "./general_components/AudioPlayerPage";
 
+import background from "../src/images/background.png";
+
 function App() {
+  var sectionStyle = {
+    backgroundImage: `url(${background})`,
+  };
+
   return (
     <Router>
-      <div className="container-fluid min-vh-100 bg-info">
+      <div className="container-fluid min-vh-100 view" style={sectionStyle}>
         <Switch>
           <Route exact path="/">
             <HomePage />

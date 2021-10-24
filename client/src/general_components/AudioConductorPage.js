@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useLocation, useParams } from "react-router";
 import ListPlayers from "../medium_components/ListPlayers";
 import AudioRecorder from "../medium_components/AudioRecorder";
+import YoutubeFrame from "../small_components/InsertVidElement";
 import axiosConfig from "../configs/axiosconfigs";
 
 const AudioConductorPage = () => {
@@ -30,7 +31,8 @@ const AudioConductorPage = () => {
 
   return (
     <div className="text-center">
-      <h1 className="text-black pt-5 mb-5">{id}</h1>
+      <h5 className="text-white pt-5">Lobby Code:</h5>
+      <h1 className="text-white mb-5">{id}</h1>
       <div class="row pt-lg-4 mt-5">
         <button
           type="button"
@@ -48,7 +50,9 @@ const AudioConductorPage = () => {
         >
           Stop Recording
         </button>
+        <YoutubeFrame />
         <AudioRecorder />
+
         <div className="fixed-bottom mb-5">
           <ListPlayers />
         </div>
