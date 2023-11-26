@@ -3,7 +3,7 @@ import { useLocation, useParams } from "react-router";
 import AudioRecorder from "../medium_components/AudioRecorder";
 import ListPlayers from "../medium_components/ListPlayers";
 import VidElement from "../small_components/VidElement";
-import axiosConfig from "../configs/axiosconfigs";
+import axiosConfig from "../configs/AxiosConfigs";
 
 const AudioPlayerPage = () => {
   const { id } = useParams();
@@ -13,7 +13,6 @@ const AudioPlayerPage = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log("testing");
       axiosConfig
         .get(`/${lobby}/embeddedLink`)
         .then((link) => {

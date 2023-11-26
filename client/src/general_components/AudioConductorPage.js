@@ -1,20 +1,28 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router";
 import ListPlayers from "../medium_components/ListPlayers";
 import AudioRecorder from "../medium_components/AudioRecorder";
 import YoutubeFrame from "../small_components/InsertVidElement";
-import axiosConfig from "../configs/axiosconfigs";
-import processing from "../configs/pureLogic";
+import axiosConfig from "../configs/AxiosConfigs";
+import {processing, MergeAudioStatus} from "../audio_processing/MergeAudio";
 
 const AudioConductorPage = () => {
   const { id } = useParams();
   const { lobby, name } = useLocation().state;
+  const [ audioProcessingStatus, setProcessingStatus ] = useState("");
 
+  
   useEffect(() => {
-    stopAllRecordings();
-  });
+    console.log("sketch");
+    const interval = setInterval(() => {
+      setProcessingStatus(MergeAudioStatus)
+    }, 100);
+
+    return () => clearInterval(interval)
+  }, []);
 
   const startAllRecordings = () => {
+    console.log("start");
     axiosConfig
       .put(`${lobby}/beginRecording`, {
         name: `${name}`,
@@ -23,19 +31,21 @@ const AudioConductorPage = () => {
   };
 
   const stopAllRecordings = () => {
+    console.log("stop");
     axiosConfig
       .put(`${lobby}/endRecording`, {
         name: `${name}`,
       })
       .then(
-        setTimeout(() => {
-          console.log("it is working");
           axiosConfig
             .get(`${lobby}/userInfo`)
-            .then((res) => res.data)
-            .then((res) => console.log(processing(res)));
-        }),
-        2000
+            .then((res) => processing(res.data))
+            .catch(() => 
+              setTimeout(() => {
+                axiosConfig
+                  .get(`${lobby}/userInfo`)
+                  .then((res) => processing(res.data));
+              }), 500)
       )
       .catch((err) => console.log(err.message));
   };
@@ -53,6 +63,8 @@ const AudioConductorPage = () => {
         >
           Start Recording
         </button>
+        
+      { <h1 className="text-white">{audioProcessingStatus}</h1> }
         <button
           type="button"
           class="btn btn-secondary m-auto float-none"

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axiosConfig from "../configs/axiosconfigs";
+import axiosConfig from "../configs/AxiosConfigs";
 import { useLocation } from "react-router";
 
 const YoutubeFrame = () => {
@@ -14,7 +14,6 @@ const YoutubeFrame = () => {
         name: name,
         embeddedLink: link,
       })
-      .catch((err) => console.log(err.message));
   };
 
   return (

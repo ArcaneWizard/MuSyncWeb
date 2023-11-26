@@ -1,28 +1,31 @@
 import React from "react";
-import axios from "../configs/axiosconfigs";
+import axios from "../configs/AxiosConfigs";
 import { useLocation } from "react-router";
 import { useState, useEffect } from "react";
-
 const ListPlayers = () => {
   const { state } = useLocation();
   const { lobby } = state;
 
   const [players, updatePlayers] = useState([]);
 
+  const updatePlayerList = () => {
+    axios
+    .get(`/${lobby}/users`)
+    .then((res) => {
+      updatePlayers(res.data);
+    })
+    .catch(err => {
+      console.log(err);
+    });
+  }
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      axios
-        .get(`/${lobby}/users`)
-        .then((res) => {
-          updatePlayers(res.data);
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    }, 2000);
+
+    updatePlayerList();
+    const interval = setInterval(updatePlayerList(), 333);
 
     return () => clearInterval(interval);
-  });
+  }, []);
 
   return (
     <div class="">
@@ -41,5 +44,4 @@ const ListPlayers = () => {
     </div>
   );
 };
-
 export default ListPlayers;

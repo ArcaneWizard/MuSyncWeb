@@ -1,94 +1,112 @@
 const express = require("express");
-app.use(express.limit(100000000));
+const app = express();
 const path = require("path");
-const port = process.env.PORT || 5000;
 require("dotenv").config();
+const port = process.env.PORT || 5000;
 
 //Connect to monk database
 const mongoURI = `localhost/database`;
 let db = require("monk")(process.env.MONGOATLAS_URL || mongoURI);
 console.log("Connected to " + db._connectionURI);
+console.log(db);
 
 //Middleware
 const cors = require("cors");
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }, ));
 db.addMiddleware(require("monk-middleware-wrap-non-dollar-update"));
-
-const bodyParser = require("body-parser");
-app.use(bodyParser.json({ limit: "50mb" })); //support json encoded bodies
-app.use(
-  bodyParser.urlencoded({
-    limit: "50mb",
-    extended: true,
-    parameterLimit: 50000,
-  })
-); //support encoded bodies
 
 //create a lobby
 app.post("/:lobby", (req, res) => {
+  console.log("a");
   const lobby = req.params.lobby;
-  db.get(lobby).then(res.json(`${lobby} created`));
+  db.get(lobby)
+    .insert({recordingStatus: "not in progress"})
+    .then(res.json(`${lobby} created`));
 });
 
-//post user to lobby
+//returns {exists: boolean}, depending on whether the specified lobby code already exists
+app.get("/:lobby", (req, res) => {
+  const lobby = req.params.lobby;
+  try {
+    if (db.get(lobby).count() == 1)
+      res.json({lobbyExists: true});
+    else
+      res.json({lobbyExists: false});
+  }
+  catch {
+    res.json({lobbyExists: true});
+  }
+  });
+
+//post user to lobby. returns {boolean success}
 app.post("/:lobby/user", (req, res) => {
   const name = req.body.name;
   const room = db.get(req.params.lobby);
+  room.count().then(count => {
+    if (count == 0) {
+       res.json({success: false});
+    }
 
-  room
-    .insert({ name: name, duration: 0, mp3: "" })
-    .then((doc) => res.json(doc))
-    .then(() => console.log(`${name} successfuly joined ${req.params.lobby}`))
-    .catch((err) => console.log(err.message));
+    room
+      .insert({ name: name, duration: 0, mp3: "" })
+      .then(() => res.json({success: true}))
+      .catch((err) => console.log(err.message))
+  })
 });
 
 //get all users
 app.get("/:lobby/users", (req, res) => {
+  console.log("c");
   const room = db.get(req.params.lobby);
   room
     .find({})
     .then((users) => res.json(users))
-    .catch((err) => console.log(err.message));
+    .catch((err) => {console.log(err.message); res.json({}); })
 });
 
 //conductor has begun recording
 app.put("/:lobby/beginRecording", (req, res) => {
+  console.log("d");
   const room = db.get(req.params.lobby);
   room
     .findOneAndUpdate(
-      { name: req.body.name },
-      { $set: { recordingState: "in progress" } },
+      { recordingStatus:{$exists: true} },
+      { $set: { recordingStatus: "in progress" } },
       {}
     )
+    .then((doc) => console.log(doc))
     .then((doc) => res.json(doc))
-    .catch((err) => console.log("hi" + err.message));
+    .catch((err) => console.log(err.message));
 });
 
 //get recording state (in progress or ended)
 app.get("/:lobby/getRecordingState", (req, res) => {
+  console.log("test");
   const room = db.get(req.params.lobby);
   room
-    .find({})
-    .then((users) => res.json(users[0].recordingState))
-    .catch((err) => console.log(err.message));
+    .findOne({recordingStatus: {$exists: true}})
+    .then((info) => res.json(info.recordingStatus))
+    .catch((err) => {res.json("not in progress")});
 });
 
 //conductor has ended recording
 app.put("/:lobby/endRecording", (req, res) => {
+  console.log("test2");
   const room = db.get(req.params.lobby);
   room
     .findOneAndUpdate(
-      { name: req.body.name },
-      { $set: { recordingState: "ended" } },
+      { recordingStatus:{$exists: true} },
+      { $set: { recordingStatus: "not in progress" } },
       {}
     )
     .then((doc) => res.json(doc))
-    .catch((err) => console.log("hi" + err.message));
+    .catch((err) => console.log(err.message));
 });
 
 //update users wave file
 app.put("/:lobby/user/audio", (req, res) => {
+  console.log("tes3");
   const room = db.get(req.params.lobby);
   room
     .findOneAndUpdate(
@@ -97,11 +115,12 @@ app.put("/:lobby/user/audio", (req, res) => {
       {}
     )
     .then((doc) => res.json(doc))
-    .catch((err) => console.log("hi" + err.message));
+    .catch((err) => console.log(err.message));
 });
 
 //get users wave file
 app.get("/:lobby/:user/getAudio", (req, res) => {
+  console.log("test4");
   const room = db.get(req.params.lobby);
   room
     .findOne({ name: `${req.params.user}` })
@@ -111,6 +130,7 @@ app.get("/:lobby/:user/getAudio", (req, res) => {
 
 //share embedded link with users
 app.put("/:lobby/embeddedLink", (req, res) => {
+  console.log("test5");
   const room = db.get(req.params.lobby);
   room
     .findOneAndUpdate(
@@ -119,11 +139,12 @@ app.put("/:lobby/embeddedLink", (req, res) => {
       {}
     )
     .then((doc) => res.json(doc))
-    .catch((err) => console.log("hi" + err.message));
+    .catch((err) => console.log(err.message));
 });
 
 //get embedded link
 app.get("/:lobby/embeddedLink", (req, res) => {
+  console.log("test6");
   const room = db.get(req.params.lobby);
   room
     .find({})
@@ -133,6 +154,7 @@ app.get("/:lobby/embeddedLink", (req, res) => {
 
 //get all user info, including files
 app.get("/:lobby/userInfo", (req, res) => {
+  console.log("test7");
   const room = db.get(req.params.lobby);
   room
     .find({})
@@ -151,6 +173,3 @@ if (process.env.NODE_ENV === "production") {
 app.get("/*", (req, res) => {
   res.sendFile(path.join(path.join(__dirname, "./build/index.html")));
 });
-
-//ping app every 20 min to keep the server from sleeping
-require("heroku-self-ping").default("https://mu-sync.herokuapp.com/");
