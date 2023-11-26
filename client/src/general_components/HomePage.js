@@ -6,16 +6,10 @@ import styled from 'styled-components';
 import { join } from "path";
 
 const HomePage = () => {
-  const [code, setCode] = useState("");
-  const [name, setName] = useState("");
+  const [code, setCode] = useState(""); // lobby code
+  const [name, setName] = useState(""); // user name
   const [errorMsg, updateErrorMsg] = useState("");
   const history = useHistory();
-  let nextPageLocation; // next page to go to
-
-  // useEffect(() => {
-  //   enterLobbyCode(code);
-  //   return () => {};
-  // }, [name]);
 
   // generates a random 5-letter lobby code, all capital letters
   let generateLobbyCode = () => {
@@ -29,13 +23,18 @@ const HomePage = () => {
   };
 
   // parameters: (string newCode, boolean clickedJoin)
-  // select the lobby that matches with the specified code. If a lobby can't be joined.
-  // update the user error message. Join the lobby if the user clicked join
-  let enterLobbyCode = async (newCode, clickedJoin) => {
+  // find the lobby that matches with the specified code. If a lobby can't be joined.
+  // give an error message. Join the lobby only if the user clicked join
+  let joinLobby = async (newCode, clickedJoin) => {
     setCode(newCode);
 
     if (name == "" && clickedJoin) {
       updateErrorMsg("Please enter a name before joining a lobby.");
+      return;
+    }
+    
+    else if (name == "" && !clickedJoin) {
+      updateErrorMsg("Please enter a name before creating a lobby.");
       return;
     }
     
@@ -55,22 +54,36 @@ const HomePage = () => {
         if (!res.data.exists)
           updateErrorMsg("Lobby could not be found");
         else if (!clickedJoin)
-          updateErrorMsg("Lobby found!");
+          updateErrorMsg("Lobby found! Click to join");
         else {
-          const location = {
+          let res = await axiosConfig.get(`/${newCode}/getUser`, {
+            params: {
+            name: name
+            }
+          });
+          
+          if (res.data.exists) {
+            updateErrorMsg("Username is taken in the lobby entered.");
+            return;
+          }
+
+          res = axiosConfig.post(`/${newCode}/user`, {
+            name: name,
+          });
+
+          const nextPageLocation = {
             pathname: `${newCode}/player`,
             state: {
               name: name,
               lobby: newCode,
             },
           };
-
-          history.push(location)
+          
+          history.push(nextPageLocation);
         }
       }
       catch {
         updateErrorMsg("Network Error. Couldn't connect to server");
-        return;
       }
     }
   };
@@ -84,19 +97,16 @@ const HomePage = () => {
   // returns whether or not a lobby with the specified code can be created
   let tryToCreateLobby = async (newCode) => {
     try {
-      console.log("fuck");
-      const res = await axiosConfig.get(`/${newCode}`);
-      console.log("fuck2");
-      if (!res.data.lobbyExists)
+      const res = await axiosConfig.post(`/${newCode}`);
+      if (res.data.success)
         return LobbyCreationStatus.SUCCESS;
       else
         return LobbyCreationStatus.RETRY_ERROR;
     }
     catch(err) {
-      console.log(err);
       return LobbyCreationStatus.FAIL_ERROR;
     }
-  };
+  }
 
   // create a lobby and load it. Throw an error if applicable
   let createLobby = async (e) => {
@@ -113,27 +123,24 @@ const HomePage = () => {
     let newCode;
     while (status == LobbyCreationStatus.RETRY_ERROR) {
       newCode = generateLobbyCode();
-      console.log("hah");
       status = await tryToCreateLobby(newCode);
-      console.log("hih");
     }
 
     // add user to lobby and load it
     if (status == LobbyCreationStatus.SUCCESS) {
-      console.log("try to create lobby 2" + newCode);
       axiosConfig
-      .post(`/${newCode}/user`, {
-        name: name,
-      })
-      .then(() => {
-        nextPageLocation = {
-          pathname: `${newCode}/conductor`,
-          state: {
-            name: name,
-            lobby: newCode,
-          },
-        };
-       history.push(nextPageLocation);
+      .post(`/${newCode}/user`, {})
+      .then(res => {
+          if (res.data.success) {
+            const nextPageLocation = {
+              pathname: `${newCode}/conductor`,
+              state: {
+                name: name,
+                lobby: newCode,
+              },
+            };
+            history.push(nextPageLocation);
+        }
       })
     }
     else if (status == LobbyCreationStatus.FAIL_ERROR) {
@@ -174,13 +181,13 @@ const HomePage = () => {
             <div class="pt-3 text-center">
               <LobbyCode
                 value={code}
-                onChange={(e) => enterLobbyCode(e.target.value.toUpperCase(), false)}
+                onChange={(e) => joinLobby(e.target.value.toUpperCase(), false)}
                 placeholder="Enter Code"
               />  
               <JoinButton
                  onClick={(e) => {
                   e.preventDefault();
-                  enterLobbyCode(code, true);}}>
+                  joinLobby(code, true);}}>
                 Join
               </JoinButton>
             </div>

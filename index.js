@@ -6,7 +6,13 @@ const port = process.env.PORT || 5000;
 
 //Connect to monk database
 const mongoURI = `localhost/database`;
-let db = require("monk")(process.env.MONGOATLAS_URL || mongoURI);
+const options = {
+  writeConcern: {
+    w: 'majority',
+    r: 'majority'
+  },
+};
+let db = require("monk")(process.env.MONGOATLAS_URL || mongoURI, options);
 console.log("Connected to " + db._connectionURI);
 console.log(db);
 
@@ -16,56 +22,94 @@ app.use(cors());
 app.use(express.json({ limit: "50mb" }, ));
 db.addMiddleware(require("monk-middleware-wrap-non-dollar-update"));
 
-//create a lobby
-app.post("/:lobby", (req, res) => {
-  console.log("a");
+// response: {success: boolean}
+// creates a lobby and responds whether or not it was a success
+app.post("/:lobby", async (req, res) => {
   const lobby = req.params.lobby;
-  db.get(lobby)
-    .insert({recordingStatus: "not in progress"})
-    .then(res.json(`${lobby} created`));
-});
 
-//returns {exists: boolean}, depending on whether the specified lobby code already exists
-app.get("/:lobby", (req, res) => {
-  const lobby = req.params.lobby;
   try {
-    if (db.get(lobby).count() == 1)
-      res.json({lobbyExists: true});
-    else
-      res.json({lobbyExists: false});
+    let count = await db.get(lobby).count();
+    if (count != 0) {
+      res.json({success:false});
+      return;
+    }
   }
   catch {
-    res.json({lobbyExists: true});
+    res.json({success: false});
+  }
+
+  db.get(lobby)
+    .insert({recordingStatus: "not in progress"})
+    .then(res.json({success: true}));
+});
+
+// response: {exists: boolean}
+// returns whether or not the specified lobby code already exists
+app.get("/:lobby", async (req, res) => {
+  const lobby = req.params.lobby;
+  try {
+    let count = await db.get(lobby).count();
+    res.json({exists: (count > 0)});
+  }
+  catch {
+    res.json({exists: false});
   }
   });
 
-//post user to lobby. returns {boolean success}
-app.post("/:lobby/user", (req, res) => {
+  
+// response: {exists: boolean}
+// returns whether or not the specified user exists in the specified lobby
+app.get("/:lobby/getUser", async (req, res) => {
+  const room = db.get(req.params.lobby);
+  const username = req.query.name;
+  try {
+    let user = await room.findOne({name: username});
+    res.json({exists: (user != null)});
+  }
+  catch {
+    res.json({exists: true});
+  }
+  });
+
+// response: {success: boolean}
+// add user to a lobby and return whether operation was successful
+app.post("/:lobby/user", async (req, res) => {
   const name = req.body.name;
   const room = db.get(req.params.lobby);
-  room.count().then(count => {
-    if (count == 0) {
-       res.json({success: false});
-    }
 
-    room
-      .insert({ name: name, duration: 0, mp3: "" })
-      .then(() => res.json({success: true}))
-      .catch((err) => console.log(err.message))
-  })
+  let success = false;
+  let attempts = 2;
+  while (attempts > 0 && !success) {
+    attempts--;
+    try {
+      const count = await room.count();
+      if (count == 0) {
+        success = false;
+        continue;
+      }
+
+      let doc = room.insert({ name: name, duration: 0, mp3: "" });
+      success = (doc != null);
+    }
+     catch {
+      success = false;
+     }
+  }
+
+  res.json({success: success})
 });
 
-//get all users
+// response: {users}
+// get a list of all users' names in the specified lobby
 app.get("/:lobby/users", (req, res) => {
-  console.log("c");
   const room = db.get(req.params.lobby);
   room
-    .find({})
+    .find({name:{$exists:true}})
     .then((users) => res.json(users))
-    .catch((err) => {console.log(err.message); res.json({}); })
+    .catch((err) => {res.json({}); })
 });
 
-//conductor has begun recording
+// updates that recording has started in a lobby 
 app.put("/:lobby/beginRecording", (req, res) => {
   console.log("d");
   const room = db.get(req.params.lobby);
@@ -77,12 +121,21 @@ app.put("/:lobby/beginRecording", (req, res) => {
     )
     .then((doc) => console.log(doc))
     .then((doc) => res.json(doc))
-    .catch((err) => console.log(err.message));
+    .catch((err) => {console.log(err.message); res.json(doc)});
 });
+
+// deletes the specified user from the lobby if they exist
+app.delete("/:lobby/deleteUser", (req) => {
+  console.log("tee");
+  const room = db.get(req.params.lobby);
+  const userName = req.body.name;
+  room
+    .remove({name:userName}, );
+});
+
 
 //get recording state (in progress or ended)
 app.get("/:lobby/getRecordingState", (req, res) => {
-  console.log("test");
   const room = db.get(req.params.lobby);
   room
     .findOne({recordingStatus: {$exists: true}})

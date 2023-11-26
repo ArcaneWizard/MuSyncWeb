@@ -41,8 +41,8 @@ const AudioRecorder = () => {
   }, []);
 
   const actBasedOnRecordingState = () => {
-    console.log("decide whether to begin or end recording");
-    console.log(recordingState + ", " + prevRecordingState);
+  //  console.log("decide whether to begin or end recording");
+  //  console.log(recordingState + ", " + prevRecordingState);
     if (recordingState == "in progress" && prevRecordingState != "in progress")
       beginRecording();
     else if (recordingState != "in progress" && prevRecordingState == "in progress")

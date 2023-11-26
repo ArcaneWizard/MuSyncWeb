@@ -18,8 +18,25 @@ const AudioConductorPage = () => {
       setProcessingStatus(MergeAudioStatus)
     }, 100);
 
-    return () => clearInterval(interval)
+
+  //   console.log(name + ", cow");
+  //   axiosConfig.delete(`${lobby}/deleteUser`, {
+  //     name: `${name}`
+  // });
+   // window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => { 
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    }
   }, []);
+
+  const handleBeforeUnload = () => {
+    console.log("unloaded");
+    axiosConfig.delete(`${lobby}/deleteUser`, {
+        name: `${name}`
+    });
+  }
 
   const startAllRecordings = () => {
     console.log("start");
