@@ -1,5 +1,5 @@
 import React from "react";
-import axios from "../configs/AxiosConfigs";
+import axiosConfig from "../configs/AxiosConfigs";
 import { useLocation } from "react-router";
 import { useState, useEffect } from "react";
 const ListPlayers = () => {
@@ -9,20 +9,16 @@ const ListPlayers = () => {
   const [players, updatePlayers] = useState([]);
 
   const updatePlayerList = () => {
-    axios
+    axiosConfig
     .get(`/${lobby}/users`)
     .then((res) => {
       updatePlayers(res.data);
-    })
-    .catch(err => {
-      console.log(err);
     });
   }
 
   useEffect(() => {
-
     updatePlayerList();
-    const interval = setInterval(updatePlayerList(), 333);
+    const interval = setInterval(updatePlayerList, 333);
 
     return () => clearInterval(interval);
   }, []);

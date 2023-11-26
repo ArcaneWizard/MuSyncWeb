@@ -73,11 +73,7 @@ const HomePage = () => {
           updateErrorMsg("Lobby found! Click to join");
         else {
           let timer = setTimeout(() => { controller.abort()}, 1000)
-          let res = await axiosConfig.get(`/${newCode}/getUser`, {
-            params: {
-            name: name
-            }
-          });
+          let res = await axiosConfig.get(`/${newCode}/user`, { params: {name: name}});
           clearTimeout(timer);
           
           if (res.data.exists) {
@@ -85,10 +81,6 @@ const HomePage = () => {
             isUpdatingJoinableLobby = false;
             return;
           }
-
-          res = axiosConfig.post(`/${newCode}/user`, {
-            name: name,
-          });
 
           const nextPageLocation = {
             pathname: `${newCode}/player`,

@@ -53,7 +53,7 @@ app.get("/:lobby", async (req, res) => {
   
 // response: {exists: boolean}
 // returns whether or not the specified user exists in the specified lobby
-app.get("/:lobby/getUser", async (req, res) => {
+app.get("/:lobby/user", async (req, res) => {
   const room = db.get(req.params.lobby);
   const username = req.query.name;
   try {
@@ -73,6 +73,7 @@ app.post("/:lobby/user", async (req, res) => {
 
   let success = false;
   let attempts = 2;
+  console.log("hi " + name);
   while (attempts > 0 && !success) {
     attempts--;
     try {
@@ -81,8 +82,14 @@ app.post("/:lobby/user", async (req, res) => {
         success = false;
         continue;
       }
+      console.log("hi");
+      const user = await room.findOne({name: name});
+      if (user != null) {
+        success = false;
+        continue;
+      }
 
-      let doc = room.insert({ name: name, duration: 0, mp3: "" });
+      const doc = room.insert({ name: name, duration: 0, mp3: "" });
       success = (doc != null);
     }
      catch {
@@ -100,7 +107,7 @@ app.get("/:lobby/users", (req, res) => {
   room
     .find({name:{$exists:true}})
     .then((users) => res.json(users))
-    .catch((err) => {res.json({}); })
+    .catch(() => {res.json([]); })
 });
 
 // updates that recording has started in a lobby 
@@ -119,12 +126,12 @@ app.put("/:lobby/beginRecording", (req, res) => {
 });
 
 // deletes the specified user from the lobby if they exist
-app.delete("/:lobby/deleteUser", (req) => {
-  console.log("tee");
+app.delete("/:lobby", (req) => {
   const room = db.get(req.params.lobby);
-  const userName = req.body.name;
+  const userName = req.query.name;
+  console.log("delete " + userName);
   room
-    .remove({name:userName}, );
+    .remove({name:userName});
 });
 
 

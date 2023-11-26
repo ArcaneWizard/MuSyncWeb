@@ -7,25 +7,45 @@ import axiosConfig from "../configs/AxiosConfigs";
 
 const AudioPlayerPage = () => {
   const { id } = useParams();
-  const { state } = useLocation();
-  const { lobby } = state;
+  const { lobby, name } = useLocation().state;
   const [embeddedLink, setEmbeddedLink] = useState("");
 
   useEffect(() => {
+    axiosConfig
+    .post(`/${lobby}/user`, {
+      name:name
+    });
+    
     const interval = setInterval(() => {
       axiosConfig
-        .get(`/${lobby}/embeddedLink`)
-        .then((link) => {
-          console.log(link.data);
-          setEmbeddedLink(link.data);
-        })
-        .catch((err) => {
-          console.log(err.message);
-        });
+      .post(`/${lobby}/user`, {
+        name:name
+      });
+      // axiosConfig
+      //   .get(`/${lobby}/embeddedLink`)
+      //   .then((link) => {
+      //     console.log(link.data);
+      //     setEmbeddedLink(link.data);
+      //   })
+      //   .catch((err) => {
+      //     console.log(err.message);
+      //   });
     }, 1500);
 
-    return () => clearInterval(interval);
-  });
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {clearInterval(interval); console.log("hehehehe"); handleBeforeUnload();}
+  }, []);
+
+  const handleBeforeUnload = () => {
+    console.log(lobby + ", " + name + ", high");
+    axiosConfig.delete(`${lobby}`,{
+      params: {
+        name: `${name}`
+      }
+    });
+  }
 
   return (
     <div className="text-center">
