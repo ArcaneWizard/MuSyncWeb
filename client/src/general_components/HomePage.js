@@ -11,6 +11,10 @@ const HomePage = () => {
   const [errorMsg, updateErrorMsg] = useState("");
   const history = useHistory();
 
+  const controller = new AbortController();
+  let isCreatingLobby = false;
+  let isUpdatingJoinableLobby = false;
+
   // generates a random 5-letter lobby code, all capital letters
   let generateLobbyCode = () => {
     let code = "";
@@ -26,44 +30,59 @@ const HomePage = () => {
   // find the lobby that matches with the specified code. If a lobby can't be joined.
   // give an error message. Join the lobby only if the user clicked join
   let joinLobby = async (newCode, clickedJoin) => {
+    if (isUpdatingJoinableLobby)
+      return;
+
+    isUpdatingJoinableLobby = true;
     setCode(newCode);
 
     if (name == "" && clickedJoin) {
       updateErrorMsg("Please enter a name before joining a lobby.");
+      isUpdatingJoinableLobby = false;
       return;
     }
     
     else if (name == "" && !clickedJoin) {
       updateErrorMsg("Please enter a name before creating a lobby.");
+      isUpdatingJoinableLobby = false;
       return;
     }
     
     else if (newCode.length == 0 && !clickedJoin) {
       updateErrorMsg("");
+      isUpdatingJoinableLobby = false;
       return;
     }
 
     else if (newCode.length != 5) {
       updateErrorMsg("A lobby code must be 5 letters long");
+      isUpdatingJoinableLobby = false;
       return;
     }
 
     else {
       try {
-        const res = await axiosConfig.get(`/${newCode}`);
+        // abort get request if stale for 1 second
+        let timer = setTimeout(() => { controller.abort()}, 1000)
+        const res = await axiosConfig.get(`/${newCode}`, { signal: controller.signal });
+        clearTimeout(timer);
+
         if (!res.data.exists)
           updateErrorMsg("Lobby could not be found");
         else if (!clickedJoin)
           updateErrorMsg("Lobby found! Click to join");
         else {
+          let timer = setTimeout(() => { controller.abort()}, 1000)
           let res = await axiosConfig.get(`/${newCode}/getUser`, {
             params: {
             name: name
             }
           });
+          clearTimeout(timer);
           
           if (res.data.exists) {
             updateErrorMsg("Username is taken in the lobby entered.");
+            isUpdatingJoinableLobby = false;
             return;
           }
 
@@ -85,6 +104,8 @@ const HomePage = () => {
       catch {
         updateErrorMsg("Network Error. Couldn't connect to server");
       }
+      
+      isUpdatingJoinableLobby = false;
     }
   };
 
@@ -97,7 +118,11 @@ const HomePage = () => {
   // returns whether or not a lobby with the specified code can be created
   let tryToCreateLobby = async (newCode) => {
     try {
-      const res = await axiosConfig.post(`/${newCode}`);
+      // abort post request after 1 second. will enter catch statement if aborted
+      let timer = setTimeout(() => { controller.abort()}, 1000)
+      const res = await axiosConfig.post(`/${newCode}`, null,  { signal: controller.signal });
+      clearTimeout(timer);
+
       if (res.data.success)
         return LobbyCreationStatus.SUCCESS;
       else
@@ -107,14 +132,20 @@ const HomePage = () => {
       return LobbyCreationStatus.FAIL_ERROR;
     }
   }
-
+  
   // create a lobby and load it. Throw an error if applicable
   let createLobby = async (e) => {
     e.preventDefault();
+
+    // wait till this async func completes before starting a new one
+    if (isCreatingLobby)
+      return;
+    isCreatingLobby = true;
     
     // invalid username error
     if (name == "") {
       updateErrorMsg("Please enter a name before joining a lobby");
+      isCreatingLobby = false; 
       return;
     }
 
@@ -129,7 +160,9 @@ const HomePage = () => {
     // add user to lobby and load it
     if (status == LobbyCreationStatus.SUCCESS) {
       axiosConfig
-      .post(`/${newCode}/user`, {})
+      .post(`/${newCode}/user`, {
+        name:name
+      })
       .then(res => {
           if (res.data.success) {
             const nextPageLocation = {
@@ -139,12 +172,18 @@ const HomePage = () => {
                 lobby: newCode,
               },
             };
+            isCreatingLobby = false; 
             history.push(nextPageLocation);
         }
+      })
+      .catch(() => {
+        updateErrorMsg("Network Error. Couldn't connect to server");
+        isCreatingLobby = false; 
       })
     }
     else if (status == LobbyCreationStatus.FAIL_ERROR) {
       updateErrorMsg("Network Error. Couldn't connect to server");
+      isCreatingLobby = false; 
     }
   };
 

@@ -6,13 +6,7 @@ const port = process.env.PORT || 5000;
 
 //Connect to monk database
 const mongoURI = `localhost/database`;
-const options = {
-  writeConcern: {
-    w: 'majority',
-    r: 'majority'
-  },
-};
-let db = require("monk")(process.env.MONGOATLAS_URL || mongoURI, options);
+let db = require("monk")(process.env.MONGOATLAS_URL || mongoURI);
 console.log("Connected to " + db._connectionURI);
 console.log(db);
 
